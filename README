@@ -1,0 +1,107 @@
+JoyMapper v0.2
+=========
+JoyMapper is a program to map input from a joystick to key and mouse bindings.
+
+It was designed for an xbox 360 controller, but really any joystick should work.
+
+JoyMapper is comprised of two pieces -- a python script which uses pygame to read the joystick and send commands to a Java app which actually moves the mouse and send keyboard commands.
+
+Someday I'd like to get it into a single app but I wrote most of the python before discovering that the python bindings for CoreGraphics mouse events didn't seem to affect the game I was playing, but the java Robot class did.
+
+
+Requirements
+============
+Needs python2.5+, pygame and Java.
+
+Installation
+============
+(Note: I've only tested this on a Mac, but should be cross-platform).
+
+1) Install python if you don't have it (http://www.python.org/download/).
+2) Install java if you don't have it
+3) Install pygame. (Either easy_install or http://www.pygame.org/download.shtml)
+4) You may need to re-compile RelayBot (javac RelayBot.java)
+
+
+Configuration
+=============
+JoyMapper has two config files.
+If you don't pass any arguments it will read joy.cfg from the directory you run from.
+The example config uses an xbox controller roughly using southpaw.
+Left stick moves (wasd), right stick moves the mouse. The mouse x-axis wraps, y does not.
+Right/left trigger and a/b are mouse/mouse2.
+
+Comments in the config should get you through most configuration.
+
+
+Running
+===========
+python joy.py [config_file]
+
+If you don't pass a config_file it will default to joy.cfg
+
+Wait a second for the app to start and print that it has initialized before switching out.
+
+
+
+
+Extended Config Notes
+======================
+
+The file is broken down into a few sections:
+
+[main] - Some basic app config, don't need to change anything here
+
+[buttonmap] - Map joystick button numbers to names for easier configuration
+[axismap] - Map axis numbers to names for easier configuration
+
+
+[Controller_N]
+This is the binding for each controller. JoyMapper should support as many joysticks as your system supports. Naming starts at 0. [Note: haven't tested multiple joysticks yet]
+
+Format is "button_name/axis_name = keycode_name"
+The names are defined in the buttonmap and axismap as defined above. The are just opaque identifiers. The actual name has no significance.
+keycode_name comes from keymap.cfg. This maps an opaque name to a keycode which will be pressed.
+
+To control the mouse there are defined names mouse-x and mouse-y which maps to the respective mouse axes.
+For the mouse movement binds you also need to specify the max range and if the axis wraps. The default config will make the max the screen resolution (As grabbed when JoyMapper stats).
+axis_name.wrap and axis_name.max
+
+
+
+App Architecture
+================
+Two major pieces:
+
+RelayBot.java
+-Simple class that uses the java Robot to send key and mouse events to the system input handler. Seems to work in most places [works for minecraft which was the target game].
+-Reads stdin and sends keyboard/mouse events based on the protocol defined below.
+
+joy.py
+-Reads in joystick input using pygame, maps to outputs and sends commands to RelayBot.
+-Mouse position is kept by this, RelayBot is just a thin-client.
+
+
+Text Protocol
+=============
+Pretty rudimentary
+mx%d - Set mouse x pos to %d
+my%d - Set mouse y pos to %d
+mw%d - Move mouse wheel by %d
+kp%d - Send a key press for keycode %d
+kr%d - Send a key release for keycode %d
+Mouse buttons are handled as keys, using special codes 1001,1002,1003.
+Keycodes come from the java KeyEvent, almost all of them are mapped in keymap.cfg
+If you implement your own listener, you can swap it out using the main config (key_listener_app)
+
+
+Known issues
+============
+
+Occasional mouse input lag - Sometimes the input lags for a bit then catches up. Not sure the cause yet, but may have to do with the mouse ending up somewhere weird. I'll usually move the mouse stick or the actual move and it clears.
+
+Wrapping issues - I haven't yet found a way to send mouse events, only move the mouse to a given x/y. This causes issues in games that pan, since the mapping from screen coords to FOV isn't always 1-1. I have to play with the mouse sensitivity in game to make it work.
+
+Contact
+=======
+Send comments, suggestions, complaints and bug reports to jason@dreamofninjas.com

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 import logging
 logging.basicConfig()
 log = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ from events import *
 from inputs import *
 
 class RobotInterface(object):
-
+    "Interface to RelayBot. Checks that it is running, restarts if it dies. Sends commands over a pipe to stdin"
     def __init__(self, bot_cmd):
         self.bot_cmd = bot_cmd.split(" ")
         self.relaybot = self._spawn_relaybot()
@@ -30,6 +30,9 @@ class RobotInterface(object):
         print >>self.relaybot.stdin, data
 
 class Controller(object):
+    """Controller object. The ControllerFactory sets up all the binds.
+    Inputs on the controller can register for a tick so that they can emit input even when there isn't an event from the joystick [for mouse movement]
+    """
     def __init__(self, controller):
         self.controller = controller
         self.joy = pygame.joystick.Joystick(controller)
@@ -64,6 +67,7 @@ class Controller(object):
         pass
 
 class Config(ConfigParser.SafeConfigParser):
+    "Extension of SafeConfigParser with some constants"
     CONTROLLER_SECTION_TEMPLATE = "Controller_%d"
     KEYMAP_SECTION = "keymap"
     BUTTON_MAP_SECTION = "buttonmap"
@@ -94,12 +98,10 @@ class ControllerFactory(object):
 
         #Iterate through axis and button map sections, assigning all buttons
         for datasection, array in ((Config.BUTTON_MAP_SECTION, controller.button_map), (Config.AXIS_MAP_SECTION, controller.axis_map)):
-            print datasection
             for num in self.config.options(datasection):
                 if num in self.config.defaults():
                     continue #hack around defaults adding themselves to each section
                 try:
-                    print num
                     input_name = self.config.get(datasection, num)
                     _input = self._get_button(section, input_name)
                     array[int(num)] = _input
@@ -166,20 +168,23 @@ class UnConfiguredControllerError(ConfigError):pass
 class NoKeyError(ConfigError): pass
 
 class Main(object):
-
+    "Main event loop. Initializes the controllers then feeds input from pygame"
     def __init__(self, args):
 
         if len(args) < 2:
-            print "Usage: %s [config_file]" % args[0]
-            sys.exit(-1)
+            config_name = 'joy.cfg'
+            #print "Usage: %s [config_file]" % args[0]
+            #sys.exit(-1)
+        else:
+            config_name = args[1]
 
         pygame.init()
         pygame.joystick.init()
 
         if not pygame.joystick.get_count():
-            raise NoJoyError("No joysticks found")
+            pass#raise NoJoyError("No joysticks found")
 
-        self.config = self._parse_config(args[1])
+        self.config = self._parse_config(config_name)
         self.robot = RobotInterface(self.config.get(Config.MAIN_SECTION, 'key_listener_app'))
 
         self.controller_list = self._setup_controllers(self.config)
@@ -203,6 +208,8 @@ class Main(object):
 
 
     def run(self):
+        c = pygame.joystick.get_count()
+        print 'Listening on %d joystick%s' % (c, '' if c==1 else 's')
         clock = pygame.time.Clock()
 
         running = True
@@ -216,7 +223,7 @@ class Main(object):
             for e in pygame.event.get():
                 if e.dict.get('scancode',0) == 12:
                     running = False
-                print >>sys.stderr,e
+                log.debug(e)
                 if 'joy' not in e.dict:
                     continue
                 controller = self.controller_list[e.dict["joy"]]
@@ -228,7 +235,6 @@ class Main(object):
                         controller.button_press(e.dict['button'], True)
                     except KeyError:
                         pass
-                        #print >>sys.stderr, e
                 elif e.type == pygame.JOYBUTTONUP:
                     try:
                         controller.button_press(e.dict['button'], False)

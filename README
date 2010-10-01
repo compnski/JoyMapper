@@ -8,10 +8,11 @@ JoyMapper is comprised of two pieces -- a python script which uses pygame to rea
 
 Someday I'd like to get it into a single app but I wrote most of the python before discovering that the python bindings for CoreGraphics mouse events didn't seem to affect the game I was playing, but the java Robot class did.
 
+http://dreamofninjas.com/projects/joy_mapper
 
 Requirements
 ============
-Needs python2.5+, pygame and Java.
+Needs python2.5+, pygame and Java. For an xbox controller you'll need a driver. On OS X I use http://tattiebogle.net/index.php/ProjectRoot/Xbox360Controller
 
 Installation
 ============
@@ -105,3 +106,4 @@ Wrapping issues - I haven't yet found a way to send mouse events, only move the 
 Contact
 =======
 Send comments, suggestions, complaints and bug reports to jason@dreamofninjas.com
+http://dreamofninjas.com/projects/joy_mapper

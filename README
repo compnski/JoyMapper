@@ -23,7 +23,6 @@ Installation
 3) Install pygame. (Either easy_install or http://www.pygame.org/download.shtml)
 4) You may need to re-compile RelayBot (javac RelayBot.java)
 
-
 Configuration
 =============
 JoyMapper has two config files.
@@ -43,7 +42,15 @@ If you don't pass a config_file it will default to joy.cfg
 
 Wait a second for the app to start and print that it has initialized before switching out.
 
+You'll probably have to adjust the mouse sensitivity in game to make panning wrap properly.
 
+
+Known issues
+============
+
+Occasional mouse input lag - Sometimes the input lags for a bit then catches up. Not sure the cause yet, but may have to do with the mouse ending up somewhere weird. I'll usually move the mouse stick or the actual move and it clears.
+
+Wrapping issues - I haven't yet found a way to send mouse events, only move the mouse to a given x/y. This causes issues in games that pan, since the mapping from screen coords to FOV isn't always 1-1. I have to play with the mouse sensitivity in game to make it work.
 
 
 Extended Config Notes
@@ -95,13 +102,6 @@ Mouse buttons are handled as keys, using special codes 1001,1002,1003.
 Keycodes come from the java KeyEvent, almost all of them are mapped in keymap.cfg
 If you implement your own listener, you can swap it out using the main config (key_listener_app)
 
-
-Known issues
-============
-
-Occasional mouse input lag - Sometimes the input lags for a bit then catches up. Not sure the cause yet, but may have to do with the mouse ending up somewhere weird. I'll usually move the mouse stick or the actual move and it clears.
-
-Wrapping issues - I haven't yet found a way to send mouse events, only move the mouse to a given x/y. This causes issues in games that pan, since the mapping from screen coords to FOV isn't always 1-1. I have to play with the mouse sensitivity in game to make it work.
 
 Contact
 =======

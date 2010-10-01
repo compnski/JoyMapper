@@ -129,7 +129,8 @@ class ControllerFactory(object):
         elif button_info in ('mouse-x', 'mouse-y'):
             #MouseAxis
             try:
-                _max = self.config.getint(section, '%s.max' % input_name)
+                _max = self.config.getint(section, '%s.max' % input_name) - 1
+                #Mouse sometimes has issues at the bottom of the screen, lose a pixel but save functionality
                 wrap = self.config.getboolean(section, '%s.wrap' % input_name)
             except ConfigParser.NoOptionError, msg:
                 raise ConfigError(msg)

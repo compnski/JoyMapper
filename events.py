@@ -39,7 +39,6 @@ class PressEvent(Event):
         super(PressEvent, self).__init__(_type = Event.PRESS,
                                          key=key)
     def __str__(self):
-        print self.key
         return "kp%d" % self.key
 
 class ReleaseEvent(Event):

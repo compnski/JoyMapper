@@ -1,8 +1,17 @@
-JoyMapper v0.2
+JoyMapper v0.3
 =========
 JoyMapper is a program to map input from a joystick to key and mouse bindings.
 
 It was designed for an xbox 360 controller, but really any joystick should work.
+
+Release Notes:
+
+-0.3
+* Cleaned up a lot of text spam, set config to DEBUG in joy.py if you want more.
+* Added in all keymaps that I think the java Robot supportrs
+* Added in buttons to do macros and modifier keys (Separate with spaces for modifiers, commas for macros)
+* Can now reload config by pressing ctrl-c
+
 
 JoyMapper is comprised of two pieces -- a python script which uses pygame to read the joystick and send commands to a Java app which actually moves the mouse and send keyboard commands.
 

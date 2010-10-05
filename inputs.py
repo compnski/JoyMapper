@@ -6,14 +6,22 @@ class InputFactory(object):
     def __init__(self, event_func):
         self.event_func = event_func
 
-    def StatefulButton(self, key):
-        return StatefulButton(self.event_func, key)
+    def StandardButton(self, key):
+        return StandardButton(self.event_func, key)
     def TwoButtonAxis(self, threshold, pos_key, neg_key):
         return TwoButtonAxis(self.event_func, threshold, pos_key, neg_key)
     def MouseAxis(self, axis, _max, wrap):
         return MouseAxis(self.event_func, axis, _max, wrap)
     def MouseWheelButton(self, value):
         return MouseWheelButton(self.event_func, value)
+    def MultiButton(self, value):
+        return MultiButton(self.event_func, value)
+#    def RepeatingButton(self, value):
+#        return StandardMultiButton(self.event_func, value)
+    def KeySequenceButton(self, value):
+        return KeySequenceButton(self.event_func, value)
+
+
 
 class Input(object):
     def __init__(self, event_func, key):
@@ -31,13 +39,27 @@ class Input(object):
     def _emit_event(self, ev):
         self.event_func(ev)
 
-class StatefulButton(Input):
+class StandardButton(Input):
     """Sends events when state changes"""
     def set_state(self, state):
         if state != self.state:
             ev = PressEvent if state else ReleaseEvent
             self._emit_event(ev(self.key))
-        return super(StatefulButton, self).set_state(state)
+            self.state = state
+
+
+class MultiButton(Input):
+    """Sends a sequence of key presses when state changes"""
+    def __init__(self, event_func, key_list):
+        super(MultiButton, self).__init__(event_func, None)
+        self.key_list = key_list
+
+    def set_state(self, state):
+        if state != self.state:
+            ev = PressEvent if state else ReleaseEvent
+            for key in self.key_list:
+                self._emit_event(ev(key))
+            self.state = state
 
 class TwoButtonAxis(Input):
     """Sends one event for positive, one event for negative"""
@@ -122,3 +144,20 @@ class MouseWheelButton(Input):
     def set_state(self, state):
         if state:
             self._emit_event(MouseWheelEvent(self.value))
+
+
+class KeySequenceButton(Input):
+    """Sends a sequence of key press/release events whenever the button is pressed.
+    Only fires once per press
+    In the config have a comma separated list of buttons
+    """
+    def __init__(self, event_func, key_list):
+        super(KeySequenceButton, self).__init__(event_func, None)
+        self.key_list = key_list
+
+    def set_state(self, state):
+        if state:
+            for key in self.key_list:
+                self._emit_event(PressEvent(key))
+                self._emit_event(ReleaseEvent(key))
+

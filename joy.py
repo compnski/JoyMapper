@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import logging
+#logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig()
 log = logging.getLogger(__name__)
-
 import sys
 from subprocess import *
 import time
@@ -26,7 +26,7 @@ class RobotInterface(object):
     def send(self, data):
         if self.relaybot.poll() is not None:
             log.error("RelayBot quit with error code %d" % self.relaybot.returncode)
-            self.relaybot = self._spawn_relaybot
+            self.relaybot = self._spawn_relaybot()
         print >>self.relaybot.stdin, data
 
 class Controller(object):
@@ -45,7 +45,6 @@ class Controller(object):
     def add_tick_listener(self, _input):
         "Register an Input element to recieve tick events"
         self.tick_listeners.append(_input)
-
 
     def tick(self, i):
         "Run tick on all registered listeners so that they may emit events"
@@ -97,25 +96,40 @@ class ControllerFactory(object):
         controller = Controller(i)
 
         #Iterate through axis and button map sections, assigning all buttons
-        for datasection, array in ((Config.BUTTON_MAP_SECTION, controller.button_map), (Config.AXIS_MAP_SECTION, controller.axis_map)):
+        for datasection, array, get_func in ((Config.BUTTON_MAP_SECTION, controller.button_map, self._get_button), (Config.AXIS_MAP_SECTION, controller.axis_map, self._get_axis)):
             for num in self.config.options(datasection):
                 if num in self.config.defaults():
                     continue #hack around defaults adding themselves to each section
                 try:
                     input_name = self.config.get(datasection, num)
-                    _input = self._get_button(section, input_name)
+                    button_info = self.config.get(section, input_name)
+
+                    _input = get_func(section, input_name, button_info)
+
+                    if _input is None:
+                        continue #Don't have to map all keys
                     array[int(num)] = _input
                     if hasattr(_input, 'tick'):
                         controller.add_tick_listener(_input)
                 except ConfigParser.NoOptionError:
-                    log.warn("No button defined for %d=%s" % (num, input_name))
+                    log.warn("No button defined for %s=%s" % (num, input_name))
 
         return controller
 
-    def _get_button(self, section, input_name):
-        button_info = self.config.get(section, input_name)
-        if button_info.find(' ') != -1:
-            #TwoButtonAxis
+    def _get_axis(self, section, input_name, button_info, params={}):
+        "Returns an axis-type input based on config params"
+        if button_info in ('mouse-x', 'mouse-y'):
+        #MouseAxis
+            try:
+                _max = self.config.getint(section, '%s.max' % input_name) - 1
+            #Mouse sometimes has issues at the bottom of the screen, lose a pixel but save functionality
+                wrap = self.config.getboolean(section, '%s.wrap' % input_name)
+            except ConfigParser.NoOptionError, msg:
+                raise ConfigError(msg)
+            log.info('zz')
+            return self.input_factory.MouseAxis(button_info.replace('mouse-',''), _max, wrap)
+        else:
+        #TwoButtonAxis
             try:
                 neg_key, pos_key = map(self._get_keymap, button_info.split(' '))
             except ValueError:
@@ -126,28 +140,23 @@ class ControllerFactory(object):
                 threshold = self.config.getfloat(section, 'axis.threshold')
             return self.input_factory.TwoButtonAxis(threshold, pos_key, neg_key)
 
-        elif button_info in ('mouse-x', 'mouse-y'):
-            #MouseAxis
-            try:
-                _max = self.config.getint(section, '%s.max' % input_name) - 1
-                #Mouse sometimes has issues at the bottom of the screen, lose a pixel but save functionality
-                wrap = self.config.getboolean(section, '%s.wrap' % input_name)
-            except ConfigParser.NoOptionError, msg:
-                raise ConfigError(msg)
-            return self.input_factory.MouseAxis(button_info.replace('mouse-',''),
-                                                _max,
-                                                wrap)
-        elif button_info == 'wheelup':
-            #MouseWheelButton
+    def _get_button(self, section, input_name, button_info, params={}):
+        "Return a button-type input based on config params"
+        #Each section can have different button types.
+        #Someday this matching could be automated by a template in inputs so new input types are easier to add
+        if button_info == 'wheelup':
+        #MouseWheelButton
             return self.input_factory.MouseWheelButton(-1)
-
         elif button_info == 'wheeldown':
-            #MouseWheelButton
+        #MouseWheelButton
             return self.input_factory.MouseWheelButton(1)
-
+        if button_info.find(",") > 0:
+            return self.input_factory.MultiButton([self._get_keymap(p.strip()) for p in button_info.split(",")])
+        if button_info.find(" ") > 0:
+            return self.input_factory.MultiButton([self._get_keymap(p.strip()) for p in button_info.split(" ")])
         else:
-            #StatefulButton
-            return self.input_factory.StatefulButton(self._get_keymap(button_info))
+        #StatefulButton
+            return self.input_factory.StandardButton(self._get_keymap(button_info))
 
     def _get_keymap(self, key):
         """Return the Java InputEvent keybinding for a key
@@ -177,18 +186,27 @@ class Main(object):
             #print "Usage: %s [config_file]" % args[0]
             #sys.exit(-1)
         else:
-            config_name = args[1]
+            self.config_name = args[1]
 
         pygame.init()
         pygame.joystick.init()
 
         if not pygame.joystick.get_count():
             pass#raise NoJoyError("No joysticks found")
-
-        self.config = self._parse_config(config_name)
+        self.config = self._parse_config(self.config_name)
         self.robot = RobotInterface(self.config.get(Config.MAIN_SECTION, 'key_listener_app'))
-
         self.controller_list = self._setup_controllers(self.config)
+
+
+    def reload_config(self):
+        try:
+            config = self._parse_config(self.config_name)
+            self.controller_list = self._setup_controllers(config)
+        except BaseException:
+            log.exception("Failed to load new config")
+        else:
+            self.config = config
+
 
 
     def _parse_config(self, config_name):
@@ -246,6 +264,12 @@ class Main(object):
 
 
 
-
 if __name__ == "__main__":
-    Main(sys.argv).run()
+    m = Main(sys.argv)
+    while True:
+        try:
+            m.run()
+        except KeyboardInterrupt:
+            print 'Reloading config in 2s, press ctrl-c again to quit'
+            time.sleep(2)
+            m.reload_config()

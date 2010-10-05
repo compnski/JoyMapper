@@ -182,7 +182,7 @@ class Main(object):
     def __init__(self, args):
 
         if len(args) < 2:
-            config_name = 'joy.cfg'
+            self.config_name = 'joy.cfg'
             #print "Usage: %s [config_file]" % args[0]
             #sys.exit(-1)
         else:
@@ -200,6 +200,7 @@ class Main(object):
 
     def reload_config(self):
         try:
+            pygame.joystick.init()
             config = self._parse_config(self.config_name)
             self.controller_list = self._setup_controllers(config)
         except BaseException:
@@ -228,7 +229,7 @@ class Main(object):
 
     def run(self):
         c = pygame.joystick.get_count()
-        print 'Listening on %d joystick%s' % (c, '' if c==1 else 's')
+        print 'Listening on %d joystick%s. Press Ctrl-C to restart.' % (c, '' if c==1 else 's')
         clock = pygame.time.Clock()
 
         running = True
@@ -270,6 +271,6 @@ if __name__ == "__main__":
         try:
             m.run()
         except KeyboardInterrupt:
-            print 'Reloading config in 2s, press ctrl-c again to quit'
+            print 'Reloading config in 2s, press Ctrl-C again to quit'
             time.sleep(2)
             m.reload_config()

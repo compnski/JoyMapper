@@ -89,13 +89,22 @@ class DoubleTapButtonTest(InputUnitTest):
 
     def testPress(self):
         self.button.set_state(True)
+        self.button.tick(10)
+        self.button.tick(20)
+        self.button.tick(30)
         self.assertEvents([events.PressEvent(self.KEY),
                            events.ReleaseEvent(self.KEY),
                            events.PressEvent(self.KEY)])
 
     def testPressAndRelease(self):
         self.button.set_state(True)
+        self.button.tick(10)
+        self.button.tick(20)
+        self.button.tick(30)
         self.button.set_state(False)
+        self.button.tick(10)
+        self.button.tick(20)
+        self.button.tick(30)
         self.assertEvents([events.PressEvent(self.KEY),
                            events.ReleaseEvent(self.KEY),
                            events.PressEvent(self.KEY),
@@ -204,9 +213,10 @@ class MouseAxisTest(InputUnitTest):
         self.button.tick(0)
         event = self.getOnlyEvent()
 
-        self.assertTrue(event.value == self.MAX)
+        self.assertEqual(self.MAX, event.value)
         self.button.tick(10)
-        self.assertEvents([])
+        event = self.getOnlyEvent()
+        self.assertEqual(self.MAX, event.value)
 
     def testTick(self):
         previousValue = self.button.pos

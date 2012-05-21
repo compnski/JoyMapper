@@ -8,9 +8,9 @@ Release Notes:
 -0.4rc1
 * New mouse/keyboard event sending in win32, now does relative mouse movement! No more calibating.
 * A few new button types:
-** DoubleTapButton - Taps the button once for every press, holds it down until released.
-** ToggleButton - Holds the button down until the button is pressed again.
-** Hat - Hat, used for win32
+  > DoubleTapButton - Taps the button once for every press, holds it down until released.
+  > ToggleButton - Holds the button down until the button is pressed again.
+  > Hat - Hat, used for win32
 * New windows.cfg for basic xbox 360 controls -- Windows has a different way of doing axes and the dpad.
 * Unit tests for all input / event classes.
 * Some refactoring of joy.py to be cleaner, more to come + tests.
@@ -31,6 +31,17 @@ http://dreamofninjas.com/projects/joy_mapper
 Requirements
 ============
 Needs python2.5+, pygame and Java. For an xbox controller you'll need a driver. On OS X I use http://tattiebogle.net/index.php/ProjectRoot/Xbox360Controller
+
+For OS/X:
+* easy_install pygame
+* Have java installed
+
+For windows:
+* pywin32 - http://sourceforge.net/projects/pywin32/
+* python2.7 - http://www.python.org/getit/
+* pygame - http://www.pygame.org/download.shtml
+* NOTE: You must get matching 32bit or 64bit of all pacakges. Pygame is 32bit unless you follow the link to the experimental build.
+
 
 Installation
 ============

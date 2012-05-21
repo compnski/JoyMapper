@@ -8,9 +8,9 @@ Release Notes:
 -0.4rc1
 * New mouse/keyboard event sending in win32, now does relative mouse movement! No more calibating.
 * A few new button types:
-  > DoubleTapButton - Taps the button once for every press, holds it down until released.
-  > ToggleButton - Holds the button down until the button is pressed again.
-  > Hat - Hat, used for win32
+ * DoubleTapButton - Taps the button once for every press, holds it down until released.
+ * ToggleButton - Holds the button down until the button is pressed again.
+ * Hat - Hat, used for win32
 * New windows.cfg for basic xbox 360 controls -- Windows has a different way of doing axes and the dpad.
 * Unit tests for all input / event classes.
 * Some refactoring of joy.py to be cleaner, more to come + tests.

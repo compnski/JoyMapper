@@ -6,11 +6,11 @@ hat1 = 10,11,12,13
 logging.basicConfig()
 log = logging.getLogger(__name__)
 import sys
-from subprocess import *
 import time
 import ConfigParser
 from collections import defaultdict
 import events
+import robot
 
 try:
     import pygame.joystick
@@ -320,21 +320,12 @@ class Main(object):
         self.config = self._parse_config(self.config_name)
         #self.robot = RobotInterface(self.config.get(Config.MAIN_SECTION, 'key_listener_app'))
         useWin32Relay = False
-        try:
-            import win32_relay
-            print win32_relay
-            useWin32Relay = True
-        except ImportError:
-            raise
-            pass
-        print "usewin", useWin32Relay
-        if useWin32Relay:
-            import win32_relay
-            log.info("Using win32 relay")
-            print 'using win32'
-            self.robot = InputFilter(win32_relay.Win32Relay(''))
-        else:
-            self.robot = InputFilter(RobotInterface(self.config.get(Config.MAIN_SECTION, 'key_listener_app')))
+
+        import osx_relay
+        #self.robot = InputFilter(win32_relay.Win32Relay(''))
+#        self.robot = InputFilter(robot.RobotInterface(self.config.get(Config.MAIN_SECTION, 'key_listener_app')))
+        self.robot = InputFilter(robot.RobotInterface(self.config.get(Config.MAIN_SECTION, 'key_listener_app')))
+        self.robot = InputFilter(osx_relay.OsXRelay(self.robot))
         print self.robot
         self.controller_list = self._setup_controllers(self.config)
 

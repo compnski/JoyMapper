@@ -1,5 +1,4 @@
 import events
-import inputs
 win32api = None
 try:
     import win32api

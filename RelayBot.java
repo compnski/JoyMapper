@@ -12,11 +12,14 @@ public final class RelayBot
 
     robot.setAutoDelay(5);
     robot.setAutoWaitForIdle(true);
-	int mx;
-	int my;
-	mx = 0;
-	my = 0;
-
+		int mx;
+		int my;
+		mx = 0;
+		my = 0;
+		boolean mouseMove = true;
+		if ("nomousemove".equals(args[0])) {
+				mouseMove = false;
+		}
 	String userInput;
 	BufferedReader stdIn = new BufferedReader(
 											  new InputStreamReader(System.in));
@@ -85,7 +88,9 @@ public final class RelayBot
 					}
 				}
 			}
-			robot.mouseMove(mx, my);
+			if (mouseMove) {
+					robot.mouseMove(mx, my);
+			}
 		}
 	} catch (IOException e) {
 		System.err.println("Couldn't get I/O for "

@@ -1,4 +1,5 @@
 import subprocess
+import sys
 import logging
 #logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig()
@@ -12,7 +13,7 @@ class RobotInterface(object):
         self.relaybot = self._spawn_relaybot()
 
     def _spawn_relaybot(self):
-        return subprocess.Popen(self.bot_cmd, stdin=PIPE, stdout=sys.stdout)
+        return subprocess.Popen(self.bot_cmd, stdin=subprocess.PIPE, stdout=sys.stdout)
 
     def send(self, data):
         if self.relaybot.poll() is not None:

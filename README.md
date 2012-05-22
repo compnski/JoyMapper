@@ -1,10 +1,16 @@
-JoyMapper v0.4rc1
+JoyMapper v0.4rc2-mac
 =========
 JoyMapper is a program to map input from a joystick to key and mouse bindings.
 
 It was designed for an xbox 360 controller, but really any joystick should work.
 
 Release Notes:
+-0.4rc2-mac
+* New relay for OSX users -- Joymapper now can send mouse deltas using Quartz.
+ * You'll need pyobjc installed, but I think it is there by default on system python.
+ * Check with import objc
+ * Note: You'll need to disable mouse movement in the robot, look at the new mine.cfg.
+
 -0.4rc1
 * New mouse/keyboard event sending in win32, now does relative mouse movement! No more calibating.
 * A few new button types:
